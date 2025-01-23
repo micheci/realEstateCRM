@@ -1,5 +1,6 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
+import upload from "../middleware/multer.js";
 import {
   addProperty,
   deleteProperty,
@@ -10,7 +11,7 @@ const router = express.Router();
 
 router.get("/", protect, getPropertiesByAgent);
 
-router.post("/", protect, addProperty);
+router.post("/", protect, upload, addProperty);
 
 router.delete("/:id", protect, deleteProperty);
 

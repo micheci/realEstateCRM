@@ -1,42 +1,69 @@
 import Property from "../models/properties.js";
 import mongoose from "mongoose";
+import cloudinary from "../config/cloudinary.js";
 
-// Add property
 export const addProperty = async (req, res) => {
-  const property = req.body;
+  const { title, price, street, city, state, zip, description } = req.body;
 
-  // Ensure the agent's ID is available (from `req.user`)
-  if (!req.user || !req.user._id) {
+  // Combine address fields into an address object
+  const address = {
+    street,
+    city,
+    state,
+    zip,
+  };
+
+  console.log(req.files, "files!"); // Log incoming files
+
+  // Check if files are provided in the request
+  if (!req.files || req.files.length === 0) {
     return res
       .status(400)
-      .json({ success: false, message: "Agent ID is missing from the token" });
-  }
-
-  // Validate that all required property fields are present
-  if (
-    !property.title ||
-    !property.price ||
-    !property.address ||
-    !property.description
-  ) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Provide all required property info" });
+      .json({ success: false, message: "Please upload images." });
   }
 
   try {
-    // Create a new property object, including the agent's ID
+    // Upload images to Cloudinary
+    const imageUrls = [];
+    for (let i = 0; i < req.files.length; i++) {
+      const image = req.files[i];
+
+      // Upload each image buffer to Cloudinary
+      const uploadedImage = await cloudinary.uploader.upload(image.path, {
+        resource_type: "auto", // Automatically detect the file type
+      });
+
+      imageUrls.push(uploadedImage.secure_url); // Push the Cloudinary URL to the array
+    }
+
+    console.log(imageUrls, "imageUrls!"); // Log the final imageUrls array
+
+    // Validate required fields
+    if (!title || !price || !address || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required property info",
+      });
+    }
+
+    // Create and save the new property
     const newProperty = new Property({
-      ...property,
-      agentId: req.user._id, // Use the `user._id` from the authenticated user
+      title,
+      price,
+      address,
+      description,
+      images: imageUrls, // Store Cloudinary URLs
+      agentId: req.user._id, // Agent ID from token
     });
 
-    // Save the property to the database
+    // Save the property
     await newProperty.save();
+
+    console.log(newProperty, "newProperty!"); // Log the newly created property
 
     res.status(201).json({ success: true, data: newProperty });
   } catch (error) {
-    console.error("Error in addProperty:", error.message);
+    console.error("Error uploading to Cloudinary:", error);
     res.status(500).json({ success: false, message: "Error adding property" });
   }
 };
