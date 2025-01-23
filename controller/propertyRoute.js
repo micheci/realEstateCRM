@@ -130,3 +130,69 @@ export const getPropertiesByAgent = async (req, res) => {
     });
   }
 };
+
+export const editPropertyDetails = async (req, res) => {
+  const { id } = req.params;
+
+  const updates = {}; // Object to store the updates
+
+  // Step 1: Ensure the property exists
+  const existingProperty = await Property.findById(id);
+  if (!existingProperty) {
+    return res.status(404).json({
+      success: false,
+      message: "Property not found",
+    });
+  }
+
+  // Step 2: Handle non-file fields (price, description, address)
+  if (req.body.price) {
+    updates.price = req.body.price;
+  }
+
+  if (req.body.description) {
+    updates.description = req.body.description;
+  }
+
+  // Handle address update
+  if (req.body.address) {
+    const existingAddress = existingProperty.address || {};
+    const updatedAddress = {
+      street: req.body.address.street || existingAddress.street,
+      city: req.body.address.city || existingAddress.city,
+      state: req.body.address.state || existingAddress.state,
+      zip: req.body.address.zip || existingAddress.zip,
+    };
+
+    updates.address = updatedAddress; // Update the address field
+  }
+
+  // Step 3: Update the property with the new values
+  try {
+    const updatedProperty = await Property.findByIdAndUpdate(
+      id,
+      { $set: updates }, // Apply the updates
+      { new: true, runValidators: true } // Get the updated document and validate
+    );
+
+    if (!updatedProperty) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
+    // Respond with success and updated property data
+    res.status(200).json({
+      success: true,
+      message: "Property updated successfully",
+      data: updatedProperty,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating property",
+    });
+  }
+};

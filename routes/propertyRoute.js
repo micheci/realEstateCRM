@@ -5,6 +5,7 @@ import {
   addProperty,
   deleteProperty,
   getPropertiesByAgent,
+  editPropertyDetails,
 } from "../controller/propertyRoute.js";
 
 const router = express.Router();
@@ -12,6 +13,8 @@ const router = express.Router();
 router.get("/", protect, getPropertiesByAgent);
 
 router.post("/", protect, upload.array("images[]"), addProperty);
+
+router.patch("/:id", protect, editPropertyDetails);
 
 router.delete("/:id", protect, deleteProperty);
 

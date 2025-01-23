@@ -12,10 +12,10 @@ const propertySchema = new mongoose.Schema(
       trim: true,
     },
     address: {
-      street: { type: String, required: true },
+      street: { type: String, required: false },
       city: { type: String, required: true },
-      state: { type: String, required: true },
-      zip: { type: String, required: true },
+      state: { type: String, required: false },
+      zip: { type: String, required: false },
     },
     price: {
       type: Number,
