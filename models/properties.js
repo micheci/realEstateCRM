@@ -5,7 +5,6 @@ const propertySchema = new mongoose.Schema(
     agentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Agent", // This references the Agent model
-      required: true,
     },
     title: {
       type: String,
