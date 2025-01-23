@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", protect, getPropertiesByAgent);
 
-router.post("/", protect, upload, addProperty);
+router.post("/", protect, upload.array("images[]"), addProperty);
 
 router.delete("/:id", protect, deleteProperty);
 
