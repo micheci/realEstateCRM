@@ -73,3 +73,33 @@ export const deleteProperty = async (req, res) => {
     console.error("Error in delete:", error.message);
   }
 };
+
+export const getPropertiesByAgent = async (req, res) => {
+  try {
+    // The agentId is extracted from the middleware
+    const agentId = req.user._id;
+
+    // Query the database to find properties that match the agentId
+    const properties = await Property.find({ agentId });
+
+    // Check if the agent has any properties
+    if (!properties || properties.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No properties found for this agent",
+      });
+    }
+
+    // Return the properties
+    res.status(200).json({
+      success: true,
+      data: properties,
+    });
+  } catch (error) {
+    console.error("Error fetching properties:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching properties",
+    });
+  }
+};
