@@ -196,3 +196,33 @@ export const editPropertyDetails = async (req, res) => {
     });
   }
 };
+
+export const getPropertyByID = async (req, res) => {
+  try {
+    const agentId = req.user._id; // Extract agent ID from middleware
+    const { propertyID } = req.params; // Get property ID from request params
+
+    // Find the specific property that belongs to the agent
+    const property = await Property.findOne({ _id: propertyID, agentId });
+
+    // If no property is found, return a 404 response
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found or does not belong to this agent",
+      });
+    }
+
+    // Return the property
+    res.status(200).json({
+      success: true,
+      data: property,
+    });
+  } catch (error) {
+    console.error("Error fetching property:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching property",
+    });
+  }
+};

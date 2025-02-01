@@ -6,11 +6,14 @@ import {
   deleteProperty,
   getPropertiesByAgent,
   editPropertyDetails,
+  getPropertyByID,
 } from "../controller/propertyRoute.js";
 
 const router = express.Router();
 
 router.get("/", protect, getPropertiesByAgent);
+
+router.get("/:propertyID", protect, getPropertyByID);
 
 router.post("/", protect, upload.array("images[]"), addProperty);
 
