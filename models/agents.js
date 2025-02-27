@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const agentSchema = new mongoose.Schema(
   {
-    name: {
+    fullName: {
       type: String,
       required: true,
       trim: true,
@@ -22,13 +22,33 @@ const agentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    agency: {
+    agencyName: {
+      type: String,
+      trim: true,
+    },
+    website: {
+      type: String,
+      trim: true,
+    },
+    licenseNumber: {
       type: String,
       trim: true,
     },
     profilePicture: {
       type: String,
       default: "https://via.placeholder.com/150", // Placeholder image URL
+    },
+    facebook: {
+      type: String,
+      trim: true,
+    },
+    instagram: {
+      type: String,
+      trim: true,
+    },
+    linkedin: {
+      type: String,
+      trim: true,
     },
     isActive: {
       type: Boolean,

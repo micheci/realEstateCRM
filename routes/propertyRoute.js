@@ -15,7 +15,7 @@ router.get("/", protect, getPropertiesByAgent);
 
 router.get("/:propertyID", protect, getPropertyByID);
 
-router.post("/", protect, upload.array("images[]"), addProperty);
+router.post("/", protect, upload.array("images"), addProperty);
 
 router.patch("/:id", protect, editPropertyDetails);
 

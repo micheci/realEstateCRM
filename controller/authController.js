@@ -93,3 +93,43 @@ export const getAgentProfile = async (req, res) => {
     res.status(500).json({ message: "Error fetching profile", error });
   }
 };
+
+// update agent profile
+export const editAgentProfile = async (req, res) => {
+  try {
+    const agent = await Agent.findById(req.user.id);
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Ensure frontend and backend field names match
+    agent.profilePicture = req.body.profilePic;
+    agent.fullName = req.body.fullName;
+    agent.email = req.body.email;
+    agent.phone = req.body.phone;
+    agent.agency = req.body.agencyName;
+    agent.website = req.body.website;
+    agent.licenseNumber = req.body.licenseNumber;
+    agent.facebook = req.body.facebook;
+    agent.instagram = req.body.instagram;
+    agent.linkedin = req.body.linkedin;
+    const updatedAgent = await agent.save();
+
+    res.status(200).json({
+      _id: updatedAgent._id,
+      profilePicture: updatedAgent.profilePicture,
+      fullName: updatedAgent.name,
+      email: updatedAgent.email,
+      phone: updatedAgent.phone,
+      agency: updatedAgent.agency,
+      website: updatedAgent.website,
+      licenseNumber: updatedAgent.licenseNumber,
+      facebook: updatedAgent.facebook,
+      instagram: updatedAgent.instagram,
+      linkedin: updatedAgent.linkedin,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating profile", error });
+  }
+};

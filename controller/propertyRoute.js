@@ -3,67 +3,108 @@ import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary.js";
 
 export const addProperty = async (req, res) => {
-  const { title, price, street, city, state, zip, description } = req.body;
-
-  // Combine address fields into an address object
-  const address = {
+  const {
+    title,
+    price,
     street,
     city,
     state,
     zip,
-  };
+    description,
+    bedrooms,
+    bathrooms,
+    area,
+    garage,
+    parkingSpaces,
+    swimmingPool,
+    fireplace,
+    basement,
+    attic,
+    airConditioning,
+    remodeled,
+    appliancesIncluded,
+    outdoorSpace,
+    securitySystem,
+    smartHome,
+    fence,
+    hoaFees,
+    petsAllowed,
+    walkInClosets,
+  } = req.body;
+
+  // Combine address fields
+  const address = { street, city, state, zip };
 
   console.log(req.files, "files!"); // Log incoming files
-
+  console.log(req.body, "body");
   // Check if files are provided in the request
-  if (!req.files || req.files.length === 0) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Please upload images." });
+  let imageUrls = [];
+  if (req.files && req.files.length > 0) {
+    try {
+      for (let i = 0; i < req.files.length; i++) {
+        const image = req.files[i];
+
+        // Upload each image buffer to Cloudinary
+        const uploadedImage = await cloudinary.uploader.upload(image.path, {
+          resource_type: "auto",
+        });
+
+        imageUrls.push(uploadedImage.secure_url);
+      }
+    } catch (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading images",
+      });
+    }
+  }
+
+  // Validate required fields
+  if (!title || !price || !address || !description) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide all required property info",
+    });
   }
 
   try {
-    // Upload images to Cloudinary
-    const imageUrls = [];
-    for (let i = 0; i < req.files.length; i++) {
-      const image = req.files[i];
-
-      // Upload each image buffer to Cloudinary
-      const uploadedImage = await cloudinary.uploader.upload(image.path, {
-        resource_type: "auto", // Automatically detect the file type
-      });
-
-      imageUrls.push(uploadedImage.secure_url); // Push the Cloudinary URL to the array
-    }
-
-    console.log(imageUrls, "imageUrls!"); // Log the final imageUrls array
-
-    // Validate required fields
-    if (!title || !price || !address || !description) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required property info",
-      });
-    }
-
     // Create and save the new property
     const newProperty = new Property({
       title,
       price,
       address,
       description,
+      bedrooms,
+      bathrooms,
+      area,
+      garage,
+      parkingSpaces: parkingSpaces || null, // Handle empty values
+      swimmingPool,
+      fireplace,
+      basement,
+      attic,
+      airConditioning,
+      remodeled,
+      appliancesIncluded: appliancesIncluded || [], // Default to empty array
+      outdoorSpace: outdoorSpace || null,
+      securitySystem,
+      smartHome,
+      fence,
+      hoaFees: hoaFees || null,
+      petsAllowed,
+      walkInClosets,
       images: imageUrls, // Store Cloudinary URLs
       agentId: req.user._id, // Agent ID from token
     });
 
-    // Save the property
     await newProperty.save();
 
     console.log(newProperty, "newProperty!"); // Log the newly created property
 
     res.status(201).json({ success: true, data: newProperty });
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
+    console.error("Error saving property:", error);
     res.status(500).json({ success: false, message: "Error adding property" });
   }
 };
@@ -133,9 +174,9 @@ export const getPropertiesByAgent = async (req, res) => {
 
 export const editPropertyDetails = async (req, res) => {
   const { id } = req.params;
-
   const updates = {}; // Object to store the updates
-
+  console.log(req.body, "INSERVER");
+  console.log(req.files, "AYUDAME");
   // Step 1: Ensure the property exists
   const existingProperty = await Property.findById(id);
   if (!existingProperty) {
@@ -145,13 +186,29 @@ export const editPropertyDetails = async (req, res) => {
     });
   }
 
-  // Step 2: Handle non-file fields (price, description, address)
+  // Step 2: Handle non-file fields (price, description, address, etc.)
   if (req.body.price) {
     updates.price = req.body.price;
   }
 
   if (req.body.description) {
     updates.description = req.body.description;
+  }
+
+  if (req.body.bedrooms) {
+    updates.bedrooms = req.body.bedrooms;
+  }
+
+  if (req.body.bathrooms) {
+    updates.bathrooms = req.body.bathrooms;
+  }
+
+  if (req.body.area) {
+    updates.area = req.body.area;
+  }
+
+  if (req.body.features) {
+    updates.features = JSON.parse(req.body.features); // Assuming it's sent as a JSON string
   }
 
   // Handle address update
@@ -167,7 +224,29 @@ export const editPropertyDetails = async (req, res) => {
     updates.address = updatedAddress; // Update the address field
   }
 
-  // Step 3: Update the property with the new values
+  // Step 3: Handle images (new and removed)
+  let imageUrls = existingProperty.images || [];
+
+  // Check if new images are provided
+  if (req.files && req.files.images) {
+    const newImageUrls = [];
+    for (let i = 0; i < req.files.images.length; i++) {
+      const image = req.files.images[i];
+
+      // Upload each new image to Cloudinary
+      const uploadedImage = await cloudinary.uploader.upload(image.path, {
+        resource_type: "auto", // Automatically detect the file type
+      });
+
+      newImageUrls.push(uploadedImage.secure_url); // Push the Cloudinary URL to the array
+    }
+
+    // Merge new images with existing ones
+    imageUrls = [...imageUrls, ...newImageUrls];
+    updates.images = imageUrls; // Update images field with new URLs
+  }
+
+  // Step 4: Update the property with the new values
   try {
     const updatedProperty = await Property.findByIdAndUpdate(
       id,

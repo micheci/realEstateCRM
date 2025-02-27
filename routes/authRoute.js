@@ -3,6 +3,7 @@ import {
   registerAgent,
   loginAgent,
   getAgentProfile,
+  editAgentProfile,
 } from "../controller/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -14,5 +15,6 @@ router.post("/login", loginAgent);
 
 // Protected Route
 router.get("/profile", protect, getAgentProfile);
+router.put("/profile", protect, editAgentProfile);
 
 export default router;
