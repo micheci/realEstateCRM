@@ -1,6 +1,7 @@
 import Agent from "../models/agents.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import cloudinary from "../config/cloudinary.js";
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -9,8 +10,19 @@ const generateToken = (id) => {
 
 // Register Agent
 export const registerAgent = async (req, res) => {
-  const { name, email, password, phone, agency } = req.body;
-
+  const {
+    fullName,
+    email,
+    password,
+    phone,
+    agencyName,
+    website,
+    licenseNumber,
+    profilePicture,
+    facebook,
+    instagram,
+    linkedin,
+  } = req.body;
   try {
     const agentExists = await Agent.findOne({ email });
 
@@ -23,18 +35,32 @@ export const registerAgent = async (req, res) => {
 
     // Create the agent
     const agent = await Agent.create({
-      name,
+      fullName,
       email,
       password: hashedPassword,
       phone,
-      agency,
+      agencyName,
+      website,
+      licenseNumber,
+      profilePicture: profilePicture || "https://via.placeholder.com/150", // Default profile picture
+      facebook,
+      instagram,
+      linkedin,
+      isActive: true, // Set to true or false based on your logic
     });
 
     res.status(201).json({
       _id: agent._id,
-      name: agent.name,
+      fullName: agent.fullName,
       email: agent.email,
-      token: generateToken(agent._id),
+      phone: agent.phone,
+      agencyName: agent.agencyName,
+      profilePicture: agent.profilePicture,
+      facebook: agent.facebook,
+      instagram: agent.instagram,
+      linkedin: agent.linkedin,
+      isActive: agent.isActive,
+      token: generateToken(agent._id), // Assuming generateToken function exists
     });
   } catch (error) {
     res
@@ -80,11 +106,19 @@ export const getAgentProfile = async (req, res) => {
     if (agent) {
       res.status(200).json({
         _id: agent._id,
-        name: agent.name,
+        fullName: agent.fullName,
         email: agent.email,
         phone: agent.phone,
-        agency: agent.agency,
+        agencyName: agent.agencyName,
+        website: agent.website,
+        licenseNumber: agent.licenseNumber,
         profilePicture: agent.profilePicture,
+        facebook: agent.facebook,
+        instagram: agent.instagram,
+        linkedin: agent.linkedin,
+        isActive: agent.isActive,
+        createdAt: agent.createdAt,
+        updatedAt: agent.updatedAt,
       });
     } else {
       res.status(404).json({ message: "Agent not found" });
@@ -104,7 +138,6 @@ export const editAgentProfile = async (req, res) => {
     }
 
     // Ensure frontend and backend field names match
-    agent.profilePicture = req.body.profilePic;
     agent.fullName = req.body.fullName;
     agent.email = req.body.email;
     agent.phone = req.body.phone;
@@ -118,9 +151,9 @@ export const editAgentProfile = async (req, res) => {
 
     res.status(200).json({
       _id: updatedAgent._id,
-      profilePicture: updatedAgent.profilePicture,
       fullName: updatedAgent.name,
       email: updatedAgent.email,
+      profilePicture: agent.profilePicture,
       phone: updatedAgent.phone,
       agency: updatedAgent.agency,
       website: updatedAgent.website,
@@ -131,5 +164,47 @@ export const editAgentProfile = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Error updating profile", error });
+  }
+};
+
+// uploading profile Picture
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const agent = await Agent.findById(req.user._id);
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Convert memory buffer to base64 for Cloudinary
+    const base64Image = `data:${
+      req.file.mimetype
+    };base64,${req.file.buffer.toString("base64")}`;
+
+    // Upload to Cloudinary
+    const uploadedImage = await cloudinary.uploader.upload(base64Image, {
+      folder: "profile_pictures",
+      resource_type: "image",
+    });
+
+    // Save image URL in database
+    agent.profilePicture = uploadedImage.secure_url;
+    await agent.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile picture uploaded successfully",
+      imageUrl: uploadedImage.secure_url,
+    });
+  } catch (error) {
+    console.error("Error uploading profile picture:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error uploading profile picture",
+    });
   }
 };
