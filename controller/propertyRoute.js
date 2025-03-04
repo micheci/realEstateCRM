@@ -305,3 +305,80 @@ export const getPropertyByID = async (req, res) => {
     });
   }
 };
+
+export const uploadPropertyImages = async (req, res) => {
+  const { id } = req.params;
+  const existingProperty = await Property.findById(id);
+  if (!existingProperty) {
+    return res.status(404).json({
+      success: false,
+      message: "Property not found",
+    });
+  }
+
+  console.log(req.files);
+
+  // Check if files were uploaded
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No images uploaded",
+    });
+  }
+
+  const uploadedImageUrls = [];
+  console.log("Cloudinary Config:", {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ? "Exists" : "Missing",
+    api_secret: process.env.CLOUDINARY_API_SECRET ? "Exists" : "Missing",
+  });
+
+  try {
+    for (let index = 0; index < req.files.length; index++) {
+      const image = req.files[index];
+      console.log(
+        `Uploading image ${index + 1}... Buffer size: ${image.buffer.length}`
+      );
+
+      // Convert image buffer to base64
+      const base64Image = `data:${
+        image.mimetype
+      };base64,${image.buffer.toString("base64")}`;
+
+      // Upload directly with async/await
+      const result = await cloudinary.uploader.upload(base64Image, {
+        resource_type: "image",
+      });
+
+      if (result && result.secure_url) {
+        console.log(
+          `Image ${index + 1} uploaded successfully: ${result.secure_url}`
+        );
+        uploadedImageUrls.push(result.secure_url);
+      } else {
+        console.error(`No result from Cloudinary for image ${index + 1}`);
+      }
+    }
+
+    console.log("All images uploaded successfully!");
+
+    // Add new image URLs to the property images array
+    existingProperty.images.push(...uploadedImageUrls);
+    await existingProperty.save();
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message: "Images uploaded successfully",
+      data: existingProperty, // Optionally, return the updated property
+    });
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error uploading images",
+    });
+  }
+};
+
+//67989c5ce2d22574df770635
