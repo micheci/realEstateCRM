@@ -4,19 +4,15 @@ const propertySchema = new mongoose.Schema(
   {
     agentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Agent", // This references the Agent model
+      ref: "Agent", // References the Agent model
     },
     title: {
       type: String,
       required: true,
       trim: true,
     },
-    address: {
-      street: { type: String, required: false },
-      city: { type: String, required: true },
-      state: { type: String, required: false },
-      zip: { type: String, required: false },
-    },
+    address: { type: String, required: true },
+
     price: {
       type: Number,
       required: true,
@@ -32,40 +28,40 @@ const propertySchema = new mongoose.Schema(
       },
     ],
     bedrooms: {
-      type: Number, // Number of bedrooms in the property
+      type: Number,
       required: false,
     },
     bathrooms: {
-      type: Number, // Number of bathrooms in the property
+      type: Number,
       required: false,
     },
     sqftArea: {
-      type: Number, // Area of the property (in square feet or square meters)
+      type: Number,
       required: false,
     },
     yearBuild: {
-      type: Number, // Area of the property (in square feet or square meters)
+      type: Number,
       required: false,
     },
-    features: {
-      garage: { type: Boolean, default: false },
-      parkingSpaces: { type: Number, default: 0 },
-      swimmingPool: { type: Boolean, default: false },
-      fireplace: { type: Boolean, default: false },
-      basement: { type: Boolean, default: false },
-      finishedBasement: { type: Boolean, default: false },
-      attic: { type: Boolean, default: false },
-      airConditioning: { type: Boolean, default: false },
-      remodeled: { type: Boolean, default: false },
-      appliancesIncluded: { type: [String], default: [] }, // List of appliances
-      outdoorSpace: { type: String, default: "" },
-      securitySystem: { type: Boolean, default: false },
-      smartHome: { type: Boolean, default: false },
-      fence: { type: Boolean, default: false },
-      hoaFees: { type: Number, default: 0 },
-      petsAllowed: { type: Boolean, default: false },
-      walkInClosets: { type: Boolean, default: false },
-    },
+
+    // Flattened features
+    garage: { type: Boolean, default: false },
+    parkingSpaces: { type: Number, default: 0 },
+    swimmingPool: { type: Boolean, default: false },
+    fireplace: { type: Boolean, default: false },
+    basement: { type: Boolean, default: false },
+    finishedBasement: { type: Boolean, default: false },
+    attic: { type: Boolean, default: false },
+    airConditioning: { type: Boolean, default: false },
+    remodeled: { type: Boolean, default: false },
+    outdoorSpace: { type: String, default: "" },
+    securitySystem: { type: Boolean, default: false },
+    smartHome: { type: Boolean, default: false },
+    fence: { type: Boolean, default: false },
+    hoaFees: { type: Number, default: 0 },
+    petsAllowed: { type: Boolean, default: false },
+    walkInClosets: { type: Boolean, default: false },
+
     createdAt: {
       type: Date,
       default: Date.now,

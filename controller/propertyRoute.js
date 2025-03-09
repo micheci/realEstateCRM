@@ -6,11 +6,8 @@ export const addProperty = async (req, res) => {
   const {
     title,
     price,
-    street,
-    city,
-    state,
-    zip,
     description,
+    address,
     bedrooms,
     bathrooms,
     area,
@@ -22,7 +19,6 @@ export const addProperty = async (req, res) => {
     attic,
     airConditioning,
     remodeled,
-    appliancesIncluded,
     outdoorSpace,
     securitySystem,
     smartHome,
@@ -33,7 +29,6 @@ export const addProperty = async (req, res) => {
   } = req.body;
 
   // Combine address fields
-  const address = { street, city, state, zip };
 
   console.log(req.files, "files!"); // Log incoming files
   console.log(req.body, "body");
@@ -60,14 +55,6 @@ export const addProperty = async (req, res) => {
     }
   }
 
-  // Validate required fields
-  if (!title || !price || !address || !description) {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide all required property info",
-    });
-  }
-
   try {
     // Create and save the new property
     const newProperty = new Property({
@@ -79,19 +66,18 @@ export const addProperty = async (req, res) => {
       bathrooms,
       area,
       garage,
-      parkingSpaces: parkingSpaces || null, // Handle empty values
+      parkingSpaces,
       swimmingPool,
       fireplace,
       basement,
       attic,
       airConditioning,
       remodeled,
-      appliancesIncluded: appliancesIncluded || [], // Default to empty array
-      outdoorSpace: outdoorSpace || null,
+      outdoorSpace,
       securitySystem,
       smartHome,
       fence,
-      hoaFees: hoaFees || null,
+      hoaFees,
       petsAllowed,
       walkInClosets,
       images: imageUrls, // Store Cloudinary URLs
@@ -176,7 +162,6 @@ export const editPropertyDetails = async (req, res) => {
   const { id } = req.params;
   const updates = {}; // Object to store the updates
   console.log(req.body, "INSERVER");
-  console.log(req.files, "AYUDAME");
   // Step 1: Ensure the property exists
   const existingProperty = await Property.findById(id);
   if (!existingProperty) {
@@ -185,72 +170,10 @@ export const editPropertyDetails = async (req, res) => {
       message: "Property not found",
     });
   }
-
-  // Step 2: Handle non-file fields (price, description, address, etc.)
-  if (req.body.price) {
-    updates.price = req.body.price;
-  }
-
-  if (req.body.description) {
-    updates.description = req.body.description;
-  }
-
-  if (req.body.bedrooms) {
-    updates.bedrooms = req.body.bedrooms;
-  }
-
-  if (req.body.bathrooms) {
-    updates.bathrooms = req.body.bathrooms;
-  }
-
-  if (req.body.area) {
-    updates.area = req.body.area;
-  }
-
-  if (req.body.features) {
-    updates.features = JSON.parse(req.body.features); // Assuming it's sent as a JSON string
-  }
-
-  // Handle address update
-  if (req.body.address) {
-    const existingAddress = existingProperty.address || {};
-    const updatedAddress = {
-      street: req.body.address.street || existingAddress.street,
-      city: req.body.address.city || existingAddress.city,
-      state: req.body.address.state || existingAddress.state,
-      zip: req.body.address.zip || existingAddress.zip,
-    };
-
-    updates.address = updatedAddress; // Update the address field
-  }
-
-  // Step 3: Handle images (new and removed)
-  let imageUrls = existingProperty.images || [];
-
-  // Check if new images are provided
-  if (req.files && req.files.images) {
-    const newImageUrls = [];
-    for (let i = 0; i < req.files.images.length; i++) {
-      const image = req.files.images[i];
-
-      // Upload each new image to Cloudinary
-      const uploadedImage = await cloudinary.uploader.upload(image.path, {
-        resource_type: "auto", // Automatically detect the file type
-      });
-
-      newImageUrls.push(uploadedImage.secure_url); // Push the Cloudinary URL to the array
-    }
-
-    // Merge new images with existing ones
-    imageUrls = [...imageUrls, ...newImageUrls];
-    updates.images = imageUrls; // Update images field with new URLs
-  }
-
-  // Step 4: Update the property with the new values
   try {
     const updatedProperty = await Property.findByIdAndUpdate(
       id,
-      { $set: updates }, // Apply the updates
+      { $set: req.body }, // Apply the updates
       { new: true, runValidators: true } // Get the updated document and validate
     );
 
@@ -283,7 +206,7 @@ export const getPropertyByID = async (req, res) => {
 
     // Find the specific property that belongs to the agent
     const property = await Property.findOne({ _id: propertyID, agentId });
-
+    console.log(property, "found property in backend");
     // If no property is found, return a 404 response
     if (!property) {
       return res.status(404).json({
