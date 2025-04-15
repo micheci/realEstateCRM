@@ -28,4 +28,7 @@ router.patch(
 
 router.delete("/:id", protect, deleteProperty);
 
+// Client facing endpoints(dont need protect/auth)
+router.get("/featured/:slug", getFeaturedPropertiesFromSlug);
+
 export default router;

@@ -304,4 +304,28 @@ export const uploadPropertyImages = async (req, res) => {
   }
 };
 
+//This will get us the properties using the url from client frontend
+export const getFeaturedPropertiesFromSlug = async (req, res) => {
+  const { slug } = req.params;
+
+  try {
+    // 1. Find agent by slug
+    const agent = await Agent.findOne({ slug });
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // 2. Get their properties — optionally filter only featured ones
+    const properties = await Property.find({
+      agent: agent._id,
+      isFeatured: true, // <-- or remove this if you want ALL
+    });
+
+    res.json({ agent, properties });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 //67989c5ce2d22574df770635

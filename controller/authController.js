@@ -23,12 +23,24 @@ export const registerAgent = async (req, res) => {
     instagram,
     linkedin,
   } = req.body;
+
   try {
     const agentExists = await Agent.findOne({ email });
-
     if (agentExists) {
       return res.status(400).json({ message: "Agent already exists" });
     }
+
+    // Generate unique slug from full name
+    let baseSlug = slugify(fullName, { lower: true });
+    let slug = baseSlug;
+    let count = 1;
+
+    // Make sure the slug is unique
+    while (await Agent.findOne({ slug })) {
+      slug = `${baseSlug}-${count}`;
+      count++;
+    }
+
     // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -42,11 +54,12 @@ export const registerAgent = async (req, res) => {
       agencyName,
       website,
       licenseNumber,
-      profilePicture: profilePicture || "https://via.placeholder.com/150", // Default profile picture
+      profilePicture: profilePicture || "https://via.placeholder.com/150",
       facebook,
       instagram,
       linkedin,
-      isActive: true, // Set to true or false based on your logic
+      slug,
+      isActive: true,
     });
 
     res.status(201).json({
@@ -59,13 +72,15 @@ export const registerAgent = async (req, res) => {
       facebook: agent.facebook,
       instagram: agent.instagram,
       linkedin: agent.linkedin,
+      slug: agent.slug,
       isActive: agent.isActive,
-      token: generateToken(agent._id), // Assuming generateToken function exists
+      token: generateToken(agent._id),
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error registering agent", error: error.message }); // Include the error message in the response
+    res.status(500).json({
+      message: "Error registering agent",
+      error: error.message,
+    });
   }
 };
 

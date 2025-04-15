@@ -50,6 +50,13 @@ const agentSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     isActive: {
       type: Boolean,
       default: false, // Allows marking agents as admins if necessary

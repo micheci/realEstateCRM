@@ -43,6 +43,10 @@ const propertySchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    featured: {
+      type: Boolean,
+      default: false,
+    },
 
     // Flattened features
     garage: { type: Boolean, default: false },
