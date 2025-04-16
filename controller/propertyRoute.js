@@ -1,4 +1,5 @@
 import Property from "../models/properties.js";
+import Agent from "../models/agents.js";
 import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary.js";
 
@@ -304,14 +305,16 @@ export const uploadPropertyImages = async (req, res) => {
   }
 };
 
-//This will get us the properties using the url from client frontend
+//This will get us the properties belngong to a agent
 export const getFeaturedPropertiesFromSlug = async (req, res) => {
   const { slug } = req.params;
-
+  console.log(slug, "slug");
   try {
+    console.log("Agent found:before");
+
     // 1. Find agent by slug
     const agent = await Agent.findOne({ slug });
-
+    console.log("hi");
     if (!agent) {
       return res.status(404).json({ message: "Agent not found" });
     }
@@ -321,6 +324,31 @@ export const getFeaturedPropertiesFromSlug = async (req, res) => {
       agent: agent._id,
       isFeatured: true, // <-- or remove this if you want ALL
     });
+
+    res.json({ agent, properties });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getAllPropertiesFromSlug = async (req, res) => {
+  const { slug } = req.params;
+  console.log(slug, "slug");
+  try {
+    console.log("Agent found:before");
+
+    // 1. Find agent by slug
+    const agent = await Agent.findOne({ slug });
+    console.log("hi");
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // 2. Get their properties — optionally filter only featured ones
+    const properties = await Property.find({
+      agentId: agent._id,
+    });
+    console.log("properties", properties);
 
     res.json({ agent, properties });
   } catch (error) {

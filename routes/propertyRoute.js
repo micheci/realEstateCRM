@@ -8,6 +8,8 @@ import {
   editPropertyDetails,
   getPropertyByID,
   uploadPropertyImages,
+  getFeaturedPropertiesFromSlug,
+  getAllPropertiesFromSlug,
 } from "../controller/propertyRoute.js";
 
 const router = express.Router();
@@ -28,7 +30,11 @@ router.patch(
 
 router.delete("/:id", protect, deleteProperty);
 
-// Client facing endpoints(dont need protect/auth)
+// Client facing endpoints(dont need protect/auth) //
+
+//get featured property set by the agent
 router.get("/featured/:slug", getFeaturedPropertiesFromSlug);
+//get all agents properties(no protected route since front will let guest view page)
+router.get("/agent/:slug", getAllPropertiesFromSlug);
 
 export default router;
