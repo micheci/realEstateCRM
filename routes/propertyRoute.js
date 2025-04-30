@@ -33,7 +33,7 @@ router.delete("/:id", protect, deleteProperty);
 // Client facing endpoints(dont need protect/auth) //
 
 //get featured property set by the agent
-router.get("/featured/:slug", getFeaturedPropertiesFromSlug);
+router.get("/agent/featured/:slug", getFeaturedPropertiesFromSlug);
 //get all agents properties(no protected route since front will let guest view page)
 router.get("/agent/:slug", getAllPropertiesFromSlug);
 

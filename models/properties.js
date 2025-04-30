@@ -58,7 +58,7 @@ const propertySchema = new mongoose.Schema(
     attic: { type: Boolean, default: false },
     airConditioning: { type: Boolean, default: false },
     remodeled: { type: Boolean, default: false },
-    outdoorSpace: { type: String, default: "" },
+    outdoorSpace: { type: Boolean, default: false },
     securitySystem: { type: Boolean, default: false },
     smartHome: { type: Boolean, default: false },
     fence: { type: Boolean, default: false },

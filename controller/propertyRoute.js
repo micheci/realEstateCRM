@@ -27,6 +27,7 @@ export const addProperty = async (req, res) => {
     hoaFees,
     petsAllowed,
     walkInClosets,
+    sqft,
   } = req.body;
 
   // Combine address fields
@@ -81,6 +82,7 @@ export const addProperty = async (req, res) => {
       hoaFees,
       petsAllowed,
       walkInClosets,
+      sqft,
       images: imageUrls, // Store Cloudinary URLs
       agentId: req.user._id, // Agent ID from token
     });
@@ -321,11 +323,11 @@ export const getFeaturedPropertiesFromSlug = async (req, res) => {
 
     // 2. Get their properties — optionally filter only featured ones
     const properties = await Property.find({
-      agent: agent._id,
+      agentId: agent._id,
       isFeatured: true, // <-- or remove this if you want ALL
     });
 
-    res.json({ agent, properties });
+    res.json({ properties });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

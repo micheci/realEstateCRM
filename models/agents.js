@@ -57,6 +57,10 @@ const agentSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false, //lets clients seelct their featured
+    },
     isActive: {
       type: Boolean,
       default: false, // Allows marking agents as admins if necessary
